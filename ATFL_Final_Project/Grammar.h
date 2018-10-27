@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <string>
+#include <sstream>
 #include <vector>
 #include <unordered_map>
 #include <fstream>
@@ -17,6 +18,10 @@ public:
 	void convertToCNF(); //converts grammar to Chomsky normal form
 	void convertToGNF(); //converts grammar to Griebach normal form
 
+
+	/*Accessors*/
+	void printGrammar(); //prints grammar to the terminal
+
 private:
 	inline void cleanUp() { elimLambda(); elimUnit(); } //eliminates lambda and unit productions
 	void elimLambda(); //eliminates lambda productions
@@ -24,7 +29,7 @@ private:
 	bool isCNF();
 	bool isGNF();
 	std::unordered_map<std::string, int> non_terminals;
-	std::unordered_map<std::string, std::vector<std::string>> productions;
+	std::unordered_map<std::string, std::vector<std::vector<std::string>>> productions;
 	std::string filename;
 	std::ifstream infile;
 };
