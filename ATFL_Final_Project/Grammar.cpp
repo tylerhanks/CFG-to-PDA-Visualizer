@@ -1,28 +1,34 @@
 #include "Grammar.h"
 
-Grammar::Grammar(std::string filename)
+Grammar::Grammar(std::string filename): filename(filename)
 {
-	this->filename = filename;
 	infile.open(filename, std::ios::in);
+
+	// Check if file opened
+	if (!infile)
+	{
+		// If not, throw exception
+		throw std::runtime_error("Could not open file.");
+	}
+
 	std::string line, non_terminal, consumer;
 	std::vector<std::vector<std::string>> rules;
 	std::vector<std::string> rule;
 
-	while (!infile.eof())
+	while (std::getline(infile, line))
 	{
 		rule.clear();
 		rules.clear();
-		std::getline(infile, line);
 		std::istringstream iss(line);
 
-		//read the lhs non terminal
+		// Read the lhs non terminal
 		iss >> non_terminal;
 		non_terminals.insert({ non_terminal, 0 });
 
-		//nom the arrow
+		// Nom the arrow
 		iss >> consumer;
 
-		//add the rest of the production to a vector
+		// Add the rest of the production to a vector
 		while (!iss.eof())
 		{
 			iss >> consumer;
@@ -38,30 +44,27 @@ Grammar::Grammar(std::string filename)
 		}
 		rules.push_back(rule);
 
-		//add the productions to the productions map
+		// Add the productions to the productions map
 		productions.insert({ non_terminal, rules });
 	}
 
-	//this code will only be useful if we have to convert CFGs into GNF
+	// This code will only be useful if we have to convert CFGs into GNF
 	int nt_count = 0;
 	int nt_size = non_terminals.size();
 	for (auto iter = productions.begin(); iter != productions.end(); iter++)
 	{
 		if (non_terminals[iter->first] == 0)
-		{
-			non_terminals[iter->first] = nt_count+1;
-			nt_count++;
-		}
+			non_terminals[iter->first] = ++nt_count;
+
 		if (nt_count == nt_size)
 			return;
+
 		for (int i = 0; i < iter->second.size(); i++)
 			for (int j = 0; j < iter->second[i].size(); j++)
 			{
 				if (non_terminals.count(iter->second[i][j]) && non_terminals[iter->second[i][j]] == 0)
-				{
-					non_terminals[iter->second[i][j]] = nt_count+1;
-					nt_count++;
-				}
+					non_terminals[iter->second[i][j]] = ++nt_count;
+
 				if (nt_count == nt_size)
 					return;
 			}
