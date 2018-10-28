@@ -42,6 +42,7 @@ Grammar::Grammar(std::string filename)
 		productions.insert({ non_terminal, rules });
 	}
 
+	//this code will only be useful if we have to convert CFGs into GNF
 	int nt_count = 0;
 	int nt_size = non_terminals.size();
 	for (auto iter = productions.begin(); iter != productions.end(); iter++)
@@ -102,10 +103,12 @@ void Grammar::printGrammar()
 
 void Grammar::elimLambda()
 {
+	//TODO: eliminate lambda productions from the grammar
 }
 
 void Grammar::elimUnit()
 {
+	//TODO: eliminate unit productions from the grammar
 }
 
 bool Grammar::isCNF()
@@ -115,5 +118,5 @@ bool Grammar::isCNF()
 
 bool Grammar::isGNF()
 {
-	return false;
+	return true;
 }
