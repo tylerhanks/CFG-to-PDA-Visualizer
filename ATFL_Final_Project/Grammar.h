@@ -3,9 +3,14 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <queue>
 #include <unordered_map>
 #include <fstream>
 
+/************************************************************************/
+/* Grammar Class: used to store and manipulate context-free grammars    */
+/* Productions in input file must be of the form S -> a b c | ...       */
+/************************************************************************/
 class Grammar
 {
 public:
@@ -15,17 +20,26 @@ public:
 
 	/*Functions to operate on grammars
 	/*Mutates original grammar*/
+	inline void cleanUp() //simplify productions
+	{
+		elimUnreachable();
+		elimNonterminating();
+		elimLambda();
+		elimUnit();
+	}
+	void elimUnreachable(); //eliminates unreachable productions
+	void elimNonterminating(); //eliminates nonterminating productions
+	void elimLambda(); //eliminates lambda productions
+	void elimUnit(); //eliminates unit productions
 	void convertToCNF(); //converts grammar to Chomsky normal form
 	void convertToGNF(); //converts grammar to Griebach normal form
-
+	void printTransitionFunctions();
 
 	/*Accessors*/
 	void printGrammar(); //prints grammar to the terminal
 
 private:
-	inline void cleanUp() { elimLambda(); elimUnit(); } //eliminates lambda and unit productions
-	void elimLambda(); //eliminates lambda productions
-	void elimUnit(); //eliminates unit productions
+
 	bool isCNF();
 	bool isGNF();
 	std::unordered_map<std::string, int> non_terminals;

@@ -10,18 +10,30 @@ int main(int argc, char *argv[])
 		std::getchar();
 		return 0;
 	}
-
 	// Begin
 	try
 	{
 		Grammar test_grammar(argv[1]);
+		std::cout << "Input:" << std::endl << "---------------------------------" << std::endl;
 		test_grammar.printGrammar();
+
+		std::getchar();
+
+		std::cout << "Eliminate unreachable productions:" << std::endl << "---------------------------------" << std::endl;
+		test_grammar.elimUnreachable();
+		test_grammar.printGrammar();
+
+		std::getchar();
+
+		std::cout << "Print PDA:" << std::endl << "---------------------------------" << std::endl;
+		test_grammar.printTransitionFunctions();
+		std::getchar();
 	}
 	catch (std::exception& error)
 	{
 		std::cout << "Error occurred: " << error.what();
 	}
-	std::getchar();
+
 
 	return 0;
 }
