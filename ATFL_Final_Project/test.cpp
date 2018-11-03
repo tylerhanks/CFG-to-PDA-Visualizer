@@ -1,5 +1,4 @@
 #include "Grammar.h"
-#include <memory>
 
 // Arg1: path to input file
 int main(int argc, char *argv[])

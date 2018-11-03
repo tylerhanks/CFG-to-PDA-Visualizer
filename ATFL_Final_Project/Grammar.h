@@ -20,13 +20,7 @@ public:
 
 	/*Functions to operate on grammars
 	/*Mutates original grammar*/
-	inline void cleanUp() //simplify productions
-	{
-		elimUnreachable();
-		elimNonterminating();
-		elimLambda();
-		elimUnit();
-	}
+	void cleanUp(); //simplify productions
 	void elimUnreachable(); //eliminates unreachable productions
 	void elimNonterminating(); //eliminates nonterminating productions
 	void elimLambda(); //eliminates lambda productions

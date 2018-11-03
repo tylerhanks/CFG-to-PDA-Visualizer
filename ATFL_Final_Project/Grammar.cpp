@@ -18,7 +18,7 @@ Grammar::Grammar(std::string filename) : filename(filename)
 	std::vector<std::vector<std::string>> rules;
 	std::vector<std::string> rule;
 
-	while (std::getline(infile, line))
+	while (std::getline(infile, line)) 
 	{
 		rule.clear();
 		rules.clear();
@@ -76,8 +76,6 @@ Grammar::Grammar(std::string filename) : filename(filename)
 
 void Grammar::convertToCNF()
 {
-	Grammar::cleanUp();
-
 	//TODO: convert to CNF
 }
 
@@ -229,10 +227,10 @@ void Grammar::elimLambda()
 					prodRulesFinished[curr->second[i].first].emplace(curr->second[i].second.i);
 
 					std::cout << "After removing # from (" << *iter << ") => Added to (" << curr->second[i].first << ") : ";
-					
+
 					auto currVector = productions.find(curr->second[i].first)->second[curr->second[i].second.i];
 					auto outputVector = getCombos(*iter, currVector);
-					
+
 					// Push string vector from above to the appropriate production vector
 					for (int j = 0; j < outputVector.size(); ++j)
 					{
@@ -248,7 +246,7 @@ void Grammar::elimLambda()
 							std::cout << " | ";
 						}
 						std::cout << outputVector[j];
-						
+
 					}
 					std::cout << std::endl;
 				}
@@ -309,22 +307,44 @@ void Grammar::elimUnreachable()
 
 	}
 
-	// After bfs, remove unreachable productions from productions map
-	// Loop through all production symbols
-	for (auto iter = productions.begin(); iter != productions.end(); ++iter)
+	// After bfs, remove unreachable symbols from both maps
+	// Loop through all symbols
+	for (auto iter = productions.begin(); iter != productions.end();)
 	{
-		// Check if they were reached in previous step
+		// Check if they were reached in bfs
 		auto reached = visited.find(iter->first);
 		if (reached == visited.end())
 		{
-			// If production symbol was not reached, remove it
+			// If symbol was not reached, remove it
 			iter = productions.erase(iter);
 		}
+		else
+			iter++;
+	}
+	for (auto iter = non_terminals.begin(); iter != non_terminals.end();)
+	{
+		// Check if they were reached in bfs
+		auto reached = visited.find(iter->first);
+		if (reached == visited.end())
+		{
+			// If symbol was not reached, remove it
+			iter = non_terminals.erase(iter);
+		}
+		else
+			iter++;
 	}
 }
 
 void Grammar::elimNonterminating()
 {
+}
+
+void Grammar::cleanUp()
+{
+	elimUnreachable();
+	elimNonterminating();
+	elimLambda();
+	elimUnit();
 }
 
 bool Grammar::isCNF()
@@ -366,7 +386,7 @@ void Grammar::printTransitionFunctions()
 				}
 			}
 
-			// Output current production symbol and its rules for comparison
+			// Output production that yields transition rule
 			std::cout << "\t" << iter->first << " -> ";
 			for (int k = 0; k < iter->second[i].size(); k++)
 				std::cout << iter->second[i][k] << " ";
