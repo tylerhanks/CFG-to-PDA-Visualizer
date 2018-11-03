@@ -1,4 +1,5 @@
 #include "Grammar.h"
+#include <memory>
 
 // Arg1: path to input file
 int main(int argc, char *argv[])
@@ -16,6 +17,13 @@ int main(int argc, char *argv[])
 		Grammar test_grammar(argv[1]);
 		std::cout << "Input:" << std::endl << "---------------------------------" << std::endl;
 		test_grammar.printGrammar();
+		std::cout << std::endl;
+
+		std::cout << "Lambda Removal:" << std::endl << "---------------------------------" << std::endl;
+		test_grammar.elimLambda();
+		test_grammar.printGrammar();
+		std::cout << std::endl;
+
 
 		std::getchar();
 

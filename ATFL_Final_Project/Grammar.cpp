@@ -1,7 +1,9 @@
 #include "Grammar.h"
 #include <unordered_set> // Used for BFS in ::elimUnreachable
+#include <unordered_map>
+#include <string>
 
-Grammar::Grammar(std::string filename): filename(filename)
+Grammar::Grammar(std::string filename) : filename(filename)
 {
 	infile.open(filename, std::ios::in);
 
@@ -16,7 +18,7 @@ Grammar::Grammar(std::string filename): filename(filename)
 	std::vector<std::vector<std::string>> rules;
 	std::vector<std::string> rule;
 
-	while (std::getline(infile, line)) 
+	while (std::getline(infile, line))
 	{
 		rule.clear();
 		rules.clear();
@@ -110,9 +112,149 @@ void Grammar::printGrammar()
 	}
 }
 
+
+bool Grammar::isTerminal(std::string ch)
+{
+	if (ch.length() > 1)
+	{
+		return false;
+	}
+
+	return (ch[0] >= 'A' && ch[0] <= 'Z');
+}
+
+void Grammar::getCombosRecur(int len, std::string str, std::vector<std::string> &out, std::vector<int> &pos)
+{
+	if (len < 1)
+	{
+		return;
+	}
+
+	// Loop through pos vector backwards
+	for (int i = pos.size() - len; i >= 0; --i)
+	{
+		std::string input = str;
+
+		// Loop through current length starting from outside loop end point
+		for (int j = i + len - 1; j >= i; --j)
+		{
+			input.erase(input.begin() + pos[j]);
+		}
+		out.push_back(input);
+	}
+
+	getCombosRecur(len - 1, str, out, pos);
+}
+
+std::vector<std::string> Grammar::getCombos(std::string symbolToRemove, std::vector<std::string> &rule)
+{
+	std::string input;
+	std::vector<int> positions;
+	std::vector<std::string> output;
+
+	// Put rule into string form
+	for (int i = 0; i < rule.size(); ++i)
+	{
+		if (rule[i] == symbolToRemove)
+		{
+			positions.push_back(i);
+		}
+
+		input += rule[i];
+	}
+
+	getCombosRecur(positions.size(), input, output, positions);
+
+	return output;
+}
+
+// TODO: Remove duplicate rules (possibly in dedicated function)
 void Grammar::elimLambda()
 {
-	//TODO: eliminate lambda productions from the grammar
+	struct coord
+	{
+		int i;
+		int j;
+	};
+
+	std::unordered_set<std::string> hasLambda;
+	// Map -> Vector -> Pair(Symbol string, coord in production map vector)
+	std::unordered_map < std::string, std::vector<std::pair<std::string, coord>>> references;
+
+	// Loop through all production symbols
+	for (auto iter = non_terminals.begin(); iter != non_terminals.end(); ++iter)
+	{
+		auto currVector = productions.at(iter->first);
+		// Loop through all productions of current symbol
+		for (int i = 0; i < currVector.size(); ++i)
+		{
+			// Loop through all char of current production
+			for (int j = 0; j < currVector[i].size(); ++j)
+			{
+				// Keep track of referenced productions in case removal is necessary
+				if (isTerminal(currVector[i][j]))
+				{
+					references[currVector[i][j]].push_back(std::make_pair(iter->first, coord{ i,j }));
+				}
+
+				// If lambda is found and production is not set to for lambda removal
+				if (currVector[i][j] == "#" && currVector[i].size() == 1)
+				{
+					// Mark for work and remove lambda
+					hasLambda.emplace(iter->first);
+					productions.at(iter->first).erase(productions.at(iter->first).begin() + i);
+				}
+			}
+		}
+	}
+
+
+
+	// Go through and remove lambdas
+	for (auto iter = hasLambda.begin(); iter != hasLambda.end(); ++iter)
+	{
+		std::unordered_map<std::string, std::unordered_set<int>> prodRulesFinished;
+
+		// If reference was found for current lambda
+		auto curr = references.find(*iter); // This should always find it since it was put in in the previous step, so not sure if necessary
+		if (curr != references.end())
+		{
+			// Loop through all references
+			for (int i = 0; i < curr->second.size(); ++i)
+			{
+				auto currSet = prodRulesFinished.find(curr->second[i].first);
+				if (currSet == prodRulesFinished.end() || currSet->second.find(curr->second[i].second.i) == currSet->second.end())
+				{
+					// Add this to map to ensure we don't repeat for the same nonterminal in the same rule later
+					prodRulesFinished[curr->second[i].first].emplace(curr->second[i].second.i);
+
+					std::cout << "After removing # from (" << *iter << ") => Added to (" << curr->second[i].first << ") : ";
+					
+					auto currVector = productions.find(curr->second[i].first)->second[curr->second[i].second.i];
+					auto outputVector = getCombos(*iter, currVector);
+					
+					// Push string vector from above to the appropriate production vector
+					for (int j = 0; j < outputVector.size(); ++j)
+					{
+						productions[curr->second[i].first].push_back(std::vector<std::string>());
+						for (int k = 0; k < outputVector[j].size(); ++k)
+						{
+							// Push characters in the string to production vector
+							productions[curr->second[i].first][productions[curr->second[i].first].size() - 1].push_back(std::string(1, outputVector[j][k]));
+						}
+
+						if (j > 0)
+						{
+							std::cout << " | ";
+						}
+						std::cout << outputVector[j];
+						
+					}
+					std::cout << std::endl;
+				}
+			}
+		}
+	}
 }
 
 void Grammar::elimUnit()

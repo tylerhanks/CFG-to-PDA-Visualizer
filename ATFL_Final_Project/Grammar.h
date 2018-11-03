@@ -46,4 +46,8 @@ private:
 	std::unordered_map<std::string, std::vector<std::vector<std::string>>> productions;
 	std::string filename;
 	std::ifstream infile;
+
+	bool isTerminal(std::string ch);
+	std::vector<std::string> getCombos(std::string symbolToRemove, std::vector<std::string> &rule);
+	void getCombosRecur(int len, std::string str, std::vector<std::string> &out, std::vector<int> &pos);
 };
