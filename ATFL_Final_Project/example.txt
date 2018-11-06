@@ -1,6 +1,6 @@
-S -> a A | b B
-A -> a A | a | b D A
-B -> b B | b
-C -> a A | c C | E b E
-D -> d D | E b E E | E b | #
+S -> aA | bB
+A -> aA | a | bDA
+B -> bB | b
+C -> aA | cC | EbE
+D -> dD | EbEE | Eb | #
 E -> a | #

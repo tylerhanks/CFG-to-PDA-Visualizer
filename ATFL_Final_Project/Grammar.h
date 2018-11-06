@@ -5,6 +5,7 @@
 #include <vector>
 #include <queue>
 #include <unordered_map>
+#include <unordered_set>
 #include <fstream>
 
 /************************************************************************/
@@ -37,11 +38,11 @@ private:
 	bool isCNF();
 	bool isGNF();
 	std::unordered_map<std::string, int> non_terminals;
-	std::unordered_map<std::string, std::vector<std::vector<std::string>>> productions;
+	std::unordered_map<std::string, std::unordered_set<std::string>> productions;
 	std::string filename;
 	std::ifstream infile;
 
-	bool isTerminal(std::string ch);
-	std::vector<std::string> getCombos(std::string symbolToRemove, std::vector<std::string> &rule);
+	bool isNonTerminal(char ch);
+	std::vector<std::string> getCombos(char symbolToRemove, std::string rule);
 	void getCombosRecur(int len, std::string str, std::vector<std::string> &out, std::vector<int> &pos);
 };
