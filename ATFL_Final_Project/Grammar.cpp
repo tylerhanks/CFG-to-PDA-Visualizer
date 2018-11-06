@@ -141,8 +141,10 @@ void Grammar::elimLambda()
 	for (auto iter_symbol = productions.begin(); iter_symbol != productions.end(); ++iter_symbol)
 	{
 		// Loop through all rules of current symbol
-		for (auto iter_rule = iter_symbol->second.begin(); iter_rule != iter_symbol->second.end(); ++iter_rule)
+		for (auto iter_rule = iter_symbol->second.begin(); iter_rule != iter_symbol->second.end();)
 		{
+			bool erased = false;
+
 			// Loop through all char of current rule
 			for (int i = 0; i < (*iter_rule).size(); ++i)
 			{
@@ -159,15 +161,19 @@ void Grammar::elimLambda()
 				{
 					// Mark for work and remove lambda
 					hasLambda.emplace(iter_symbol->first);
-					iter_rule = productions[iter_symbol->first].erase(iter_rule);
-					--iter_rule;
+					iter_rule = iter_symbol->second.erase(iter_rule);
+					erased = true;
 					break;
 				}
 			}
+
+			if (!erased)
+			{
+				++iter_rule;
+			}
+
 		}
 	}
-
-
 
 	// Go through and remove lambdas
 	for (auto iter_symbol = hasLambda.begin(); iter_symbol != hasLambda.end(); ++iter_symbol)
