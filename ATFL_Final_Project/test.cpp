@@ -17,25 +17,37 @@ int main(int argc, char *argv[])
 		std::cout << "Input:" << std::endl << "---------------------------------" << std::endl;
 		test_grammar.printGrammar();
 		std::cout << std::endl;
-
+		
 		std::cout << "Lambda Removal:" << std::endl << "---------------------------------" << std::endl;
 		test_grammar.elimLambda();
 		std::cout << std::endl;
 		test_grammar.printGrammar();
 		std::cout << std::endl;
 
+		std::getchar();
+
+		std::cout << "Eliminate unit productions:" << std::endl << "---------------------------------" << std::endl;
+		test_grammar.elimUnit();
+		test_grammar.printGrammar();
 
 		std::getchar();
 
-		//std::cout << "Eliminate unreachable productions:" << std::endl << "---------------------------------" << std::endl;
-		//test_grammar.elimUnreachable();
-		//test_grammar.printGrammar();
+		std::cout << "Eliminate nonterminating productions:" << std::endl << "---------------------------------" << std::endl;
+		test_grammar.elimNonterminating();
+		test_grammar.printGrammar();
 
-		//std::getchar();
+		std::getchar();
 
-		//std::cout << "Print PDA:" << std::endl << "---------------------------------" << std::endl;
-		//test_grammar.printTransitionFunctions();
-		//std::getchar();
+		std::cout << "Eliminate unreachable productions:" << std::endl << "---------------------------------" << std::endl;
+		test_grammar.elimUnreachable();
+		test_grammar.printGrammar();
+
+		std::getchar();
+		
+		std::cout << "Print PDA:" << std::endl << "---------------------------------" << std::endl;
+		test_grammar.printTransitionFunctions();
+
+		std::getchar();
 	}
 	catch (std::exception& error)
 	{

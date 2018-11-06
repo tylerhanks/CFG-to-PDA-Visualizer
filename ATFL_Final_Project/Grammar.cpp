@@ -23,6 +23,9 @@ Grammar::Grammar(std::string filename) : filename(filename)
 
 		//read the lhs non terminal
 		iss >> non_terminal;
+		
+		//add to  non_terminals map
+		non_terminals.emplace(non_terminal, 0);
 
 		// TODO: Delete this?
 		// non_terminals[non_terminal] = ++nt_count;
@@ -72,6 +75,46 @@ void Grammar::printGrammar()
 		}
 		std::cout << "\n";
 	}
+}
+
+void Grammar::printTransitionFunctions()
+{
+	//# is lambda
+	std::cout << "d(q0, #, z) = (q1, Sz)";
+	std::getchar();
+
+	// Loop through all production symbols
+	for (auto iter_symbol = productions.begin(); iter_symbol != productions.end(); iter_symbol++)
+	{
+		// Loop through all rule sets of current production symbol
+		for (auto iter_rules = iter_symbol->second.begin(); iter_rules != iter_symbol->second.end(); ++iter_rules)
+		{
+			// Loop through characters in production
+			for (int i = 0; i < (*iter_rules).size(); ++i)
+			{
+				if ((*iter_rules).size() == 1)
+					std::cout << "d(q1, " << (*iter_rules)[i] << ", " << iter_symbol->first << ") = (q1, #)";
+				else
+				{
+					if (i == 0)
+						std::cout << "d(q1, " << (*iter_rules)[i] << ", " << iter_symbol->first << ") = (q1, ";
+					else
+						std::cout << (*iter_rules)[i];
+
+					if (i == ((*iter_rules).size() - 1))
+						std::cout << ")";
+				}
+			}
+
+			// Output production that yields transition rule
+			std::cout << "\t" << iter_symbol->first << " -> ";
+			for (int k = 0; k < (*iter_rules).size(); k++)
+				std::cout << (*iter_rules)[k];
+
+			std::getchar();
+		}
+	}
+	std::cout << "d(q1, #, z) = (q2, #)\n";
 }
 
 bool Grammar::isNonTerminal(char ch)
@@ -205,92 +248,214 @@ void Grammar::elimUnit()
 	//TODO: eliminate unit productions from the grammar
 }
 
-//void Grammar::elimUnreachable()
-//{
-//	//store reached variables; anything not in this vector at end of bfs is unreachable
-//	std::unordered_set<std::string> visited;
-//	visited.emplace("S");
-//
-//	//breadth-first search
-//	std::queue<std::string> bfs;
-//	bfs.push("S");
-//
-//	while (!bfs.empty())
-//	{
-//		std::string examine = bfs.front();
-//		auto iter = productions.find(examine);
-//
-//		// Check if current symbol exists in map
-//		if (iter != productions.end())
-//		{
-//			auto currProduction = iter->second;
-//
-//			// Look through that symbol's productions for nonterminals
-//			for (int i = 0; i < currProduction.size(); ++i)
-//			{
-//				for (int j = 0; j < currProduction[i].size(); ++j)
-//				{
-//					std::unordered_map<std::string, int>::const_iterator got = non_terminals.find(iter->second[i][j]);
-//					// If nonterminal found, check that it hasn't been encountered yet
-//					if (got != non_terminals.end())
-//					{
-//						// Check if encountered nonterminal is new
-//						auto reached = visited.find(got->first);
-//
-//						// If nonterminal is new, add it to visited and add it to queue
-//						if (reached == visited.end())
-//						{
-//							bfs.push(got->first);
-//							visited.emplace(got->first);
-//						}
-//					}
-//				}
-//			}
-//		}
-//
-//		bfs.pop();
-//
-//	}
-//
-//	// After bfs, remove unreachable symbols from both maps
-//	// Loop through all symbols
-//	for (auto iter = productions.begin(); iter != productions.end();)
-//	{
-//		// Check if they were reached in bfs
-//		auto reached = visited.find(iter->first);
-//		if (reached == visited.end())
-//		{
-//			// If symbol was not reached, remove it
-//			iter = productions.erase(iter);
-//		}
-//		else
-//			iter++;
-//	}
-//	for (auto iter = non_terminals.begin(); iter != non_terminals.end();)
-//	{
-//		// Check if they were reached in bfs
-//		auto reached = visited.find(iter->first);
-//		if (reached == visited.end())
-//		{
-//			// If symbol was not reached, remove it
-//			iter = non_terminals.erase(iter);
-//		}
-//		else
-//			iter++;
-//	}
-//}
+void Grammar::elimUnreachable()
+{
+	//store reached variables; anything not in this vector at end of bfs is unreachable
+	std::unordered_set<std::string> visited;
+	visited.emplace("S");
+
+	//breadth-first search
+	std::queue<std::string> bfs;
+	bfs.push("S");
+
+	while (!bfs.empty())
+	{
+		std::string examine = bfs.front();
+		auto iter_symbol = productions.find(examine);
+		// Look through examine's productions for nonterminals
+		for (auto iter_rules = iter_symbol->second.begin(); iter_rules != iter_symbol->second.end(); ++iter_rules)
+		{
+			// Loop through characters in production
+			for (int i = 0; i < (*iter_rules).size(); ++i)
+			{
+				std::string in_question = (*iter_rules).substr(i, 1);
+				auto got = non_terminals.find(in_question);
+				
+				// If nonterminal found, check that it hasn't been encountered yet
+				if (got != non_terminals.end())
+				{
+					// Check if encountered nonterminal is new
+					auto reached = visited.find(got->first);
+					// If nonterminal is new, add it to visited and add it to queue
+					if (reached == visited.end())
+					{
+						bfs.push(got->first);
+						visited.emplace(got->first);
+					}
+				}
+			}
+		}
+		bfs.pop();
+	}
+		
+	// After bfs, remove unreachable symbols from both maps
+	// Loop through all symbols
+	for (auto iter = productions.begin(); iter != productions.end();)
+	{
+		// Check if they were reached in bfs
+		auto reached = visited.find(iter->first);
+		if (reached == visited.end())
+		{
+			// If symbol was not reached, remove it
+			iter = productions.erase(iter);
+		}
+		else
+			iter++;
+	}
+	for (auto iter = non_terminals.begin(); iter != non_terminals.end();)
+	{
+		// Check if they were reached in bfs
+		auto reached = visited.find(iter->first);
+		if (reached == visited.end())
+		{
+			// If symbol was not reached, remove it
+			iter = non_terminals.erase(iter);
+		}
+		else
+			iter++;
+	}
+}
 
 void Grammar::elimNonterminating()
 {
+	for(auto iter = non_terminals.begin(); iter != non_terminals.end(); iter++)
+		iter->second = 0;	// 1->that symbol terminates, 0-> that symbol does not
+	
+	int init_term, end_term;
+	bool done = false;
+	
+	// Find all symbols with production of form A->a or A->#
+	// Loop through all production symbols
+	for (auto iter_symbol = productions.begin(); iter_symbol != productions.end(); iter_symbol++)
+	{
+		// Loop through all rules of current symbol
+		for (auto iter_rules = iter_symbol->second.begin(); iter_rules != iter_symbol->second.end(); ++iter_rules)
+		{
+			// Stop if we know symbol terminates
+			if(non_terminals[iter_symbol->first] == 1)
+				break;
+			// Else loop through each production
+			for(int i = 0; i < (*iter_rules).length(); i++)
+			{
+				// If production is single character and that character not a nonterminal, symbol terminates
+				if((((*iter_rules).length() == 1)) && (!isNonTerminal((*iter_rules)[0])))
+				{
+					non_terminals[iter_symbol->first] = 1;
+					break;
+				}
+			}
+		}
+	}
+	
+	// Look for symbols with productions that include only terminals and terminating nonterminals
+	while(!done)
+	{
+		init_term = 0;
+		end_term = 0;
+		// Count number of terminating symbols
+		// COUT FOR DEBUGGING
+		for(auto iter = non_terminals.begin(); iter != non_terminals.end(); iter++)
+			init_term += iter->second;
+		
+		// Check symbols
+		for (auto iter_symbol = productions.begin(); iter_symbol != productions.end(); iter_symbol++)
+		{
+			// Proceed if symbol doesn't terminate
+			if(non_terminals[iter_symbol->first] == 0)
+			{
+				// Loop through all rules of current symbol
+				for (auto iter_rules = iter_symbol->second.begin(); iter_rules != iter_symbol->second.end(); ++iter_rules)
+				{
+					bool prod_terminates = true;
+					// Scan each character in rule
+					for(int i = 0; i < (*iter_rules).length(); i++)
+					{
+						// If character is a nonterminating nonterminal, production doesn't terminate
+						std::string in_question = (*iter_rules).substr(i, 1);
+						auto got = non_terminals.find(in_question);
+						if(got != non_terminals.end())
+						{
+							if(got->second == 0)
+							{
+								prod_terminates = false;
+								break;
+							}
+						}
+					}
+					if(prod_terminates)
+					{
+						non_terminals[iter_symbol->first] = 1;
+						break;
+					}
+				}
+			}
+		}
+		
+		// Recount number of terminating symbols
+		for(auto iter = non_terminals.begin(); iter != non_terminals.end(); iter++)
+			end_term += iter->second;
+		
+		// If init_term == end_term, no new nonterminating symbols were found and we're done
+		if(init_term == end_term)
+			break;
+	}
+	
+	// Delete productions containing nonterminating symbols
+	for (auto iter_symbol = productions.begin(); iter_symbol != productions.end(); iter_symbol++)
+	{
+		// Loop through all rules of current symbol
+		for (auto iter_rules = iter_symbol->second.begin(); iter_rules != iter_symbol->second.end();)
+		{
+			bool kill = false;
+			// Check each character
+			for(int i = 0; i < (*iter_rules).length(); i++)
+			{
+				std::string in_question = (*iter_rules).substr(i, 1);
+				auto got = non_terminals.find(in_question);
+				if(got != non_terminals.end())
+				{
+					if(got->second == 0)
+					{
+						kill = true;
+						break;
+					}
+				}
+			}
+			if(kill)
+				iter_rules = productions[iter_symbol->first].erase(iter_rules);
+			else
+				iter_rules++;
+		}	
+	}
+	
+	// Delete symbols that have no more productions from both maps
+	for (auto iter = productions.begin(); iter != productions.end();)
+	{
+		if(non_terminals[iter->first] == 0)
+			iter = productions.erase(iter);
+		else
+			iter++;
+	}
+	for (auto iter = non_terminals.begin(); iter != non_terminals.end();)
+	{
+		if(iter->second == 0)
+			iter = non_terminals.erase(iter);
+		else
+			iter++;
+	}
+	
+	// Reset integers in nonterminal map to 0 for future functions
+	for(auto iter = non_terminals.begin(); iter != non_terminals.end(); iter++)
+		iter->second = 0;
 }
 
-//void Grammar::cleanUp()
-//{
-//	elimUnreachable();
-//	elimNonterminating();
-//	elimLambda();
-//	elimUnit();
-//}
+void Grammar::cleanUp()
+{
+	elimUnreachable();
+	elimNonterminating();
+	elimLambda();
+	elimUnit();
+}
 
 // TODO: Unfinished?
 bool Grammar::isCNF()
@@ -303,43 +468,3 @@ bool Grammar::isGNF()
 {
 	return true;
 }
-
-//void Grammar::printTransitionFunctions()
-//{
-//	//# is lambda
-//	std::cout << "d(q0, #, z) = (q1, Sz)";
-//	std::getchar();
-//
-//	// Loop through all production symbols
-//	for (auto iter = productions.begin(); iter != productions.end(); iter++)
-//	{
-//		// Loop through all rule sets of current production symbol
-//		for (int i = 0; i < iter->second.size(); i++)
-//		{
-//			// Loop through each symbol of current production rule
-//			for (int j = 0; j < iter->second[i].size(); j++)
-//			{
-//				if (iter->second[i].size() == 1)
-//					std::cout << "d(q1, " << iter->second[i][j] << ", " << iter->first << ") = (q1, #)";
-//				else
-//				{
-//					if (j == 0)
-//						std::cout << "d(q1, " << iter->second[i][j] << ", " << iter->first << ") = (q1, ";
-//					else
-//						std::cout << iter->second[i][j];
-//
-//					if (j == (iter->second[i].size() - 1))
-//						std::cout << ")";
-//				}
-//			}
-//
-//			// Output production that yields transition rule
-//			std::cout << "\t" << iter->first << " -> ";
-//			for (int k = 0; k < iter->second[i].size(); k++)
-//				std::cout << iter->second[i][k] << " ";
-//
-//			std::getchar();
-//		}
-//	}
-//	std::cout << "d(q1, #, z) = (q2, #)\n";
-//}
