@@ -27,13 +27,10 @@ Grammar::Grammar(std::string filename) : filename(filename)
 		//add to  non_terminals map
 		non_terminals.emplace(non_terminal, 0);
 
-		// TODO: Delete this?
-		// non_terminals[non_terminal] = ++nt_count;
-
 		//nom the arrow
 		iss >> consumer;
 
-		//add the rest of the production to a vector
+		//add the rest of the production to a set
 		while (!iss.eof())
 		{
 			iss >> consumer;
@@ -45,17 +42,94 @@ Grammar::Grammar(std::string filename) : filename(filename)
 	}
 }
 
-void Grammar::convertToCNF()
+// Because to_string() is bugged using MinGW
+std::string Grammar::convert_int_to_string (int x)
 {
-	// TODO: convert to CNF
+	if (x < 0)
+		return std::string("-") + convert_int_to_string(-x);
+	if (x < 10)
+		return std::string(1, x + '0');
+	return convert_int_to_string(x/10) + convert_int_to_string(x%10);
 }
 
-void Grammar::convertToGNF()
+// Assumes grammar is totally clean
+int Grammar::convertToGNF()
 {
-	if (!isCNF())
-		convertToCNF();
+	// Check first that each production has a terminal as its initial character
+	// Loop through all symbols
+	for (auto iter_symbol = productions.begin(); iter_symbol != productions.end(); iter_symbol++)
+	{
+		// Loop through all curent rules of symbol
+		for (auto iter_rules = iter_symbol->second.begin(); iter_rules != iter_symbol->second.end(); ++iter_rules)
+		{
+			// Check first character of each production
+			if(((*iter_rules)[0] < 'a') || ('z' < (*iter_rules)[0]))
+			{
+				std::cout << "Invalid Grammar: contains production with non-terminal as first character\n\n";
+				return 1;
+			}
+		}
+	}
+	
+	// Index 0->a, 1->b, ..., 25->z.  Replace[i] = 1 means that terminal was replaced.
+	int replace[26] = {};
+	
+	// Loop through all symbols
+	for (auto iter_symbol = productions.begin(); iter_symbol != productions.end(); iter_symbol++)
+	{
+		std::unordered_set<std::string> modified_productions;
+		// Loop through all curent rules of symbol and store modified rules in modified_productions
+		for (auto iter_rules = iter_symbol->second.begin(); iter_rules != iter_symbol->second.end(); ++iter_rules)
+		{
+			std::string modified_rule = "";
+			// Loop through each chracter in current rule and write modifications to modified_rule
+			for(int i = 0; i < (*iter_rules).length(); i++)
+			{
+				// Except first character...
+				if(i != 0)
+				{
+					// ...if terminal, replace with (number)
+					// number = index in replace[] + 1; i.e. a->(1), b->(2), .., z->(26)
+					// This way (number) is that letter's position in the alphabet
+					if(((*iter_rules)[i] >= 'a') && ((*iter_rules)[i] <= 'z'))
+					{
+						//Generate (number) and add to modified_rule
+						int index = (*iter_rules)[i] - 'a';
+						replace[index] = 1;
+						std::string replace_with = "(";
+						replace_with += convert_int_to_string(index + 1);
+						replace_with += ")";
+						// Add to modified_rule
+						modified_rule += replace_with;
+					}
+					else
+						// Copy character to modified_rule if not terminal
+						modified_rule += (*iter_rules).substr(i, 1);
+				}
+				else
+					// Always get first character
+					modified_rule += (*iter_rules).substr(i, 1);
+			}
+			// Put finished rule in new set
+			modified_productions.emplace(modified_rule);
+		}
+		// Swap new set with symbol's old set
+		swap(iter_symbol->second, modified_productions);
+	}
 
-	// TODO: convert to GNF
+	// Add corresponding productions for the terminals that were replaced.
+	for(int i = 0; i < 26; i++)
+	{
+		if(replace[i] == 1)
+		{
+			std::string new_symbol = "(";
+			new_symbol += convert_int_to_string(i + 1);
+			new_symbol += ")";
+			std::string new_prod(1, i + 'a');
+			productions[new_symbol].emplace(new_prod);
+		}
+	}
+	return 0;
 }
 
 void Grammar::printGrammar()
@@ -77,8 +151,39 @@ void Grammar::printGrammar()
 	}
 }
 
-void Grammar::printTransitionFunctions()
+int Grammar::printTransitionFunctions()
 {
+	// Check first that grammar is in GNF
+	// Loop through all symbols
+	for (auto iter_symbol = productions.begin(); iter_symbol != productions.end(); iter_symbol++)
+	{
+		// Loop through all curent rules of symbol
+		for (auto iter_rules = iter_symbol->second.begin(); iter_rules != iter_symbol->second.end(); ++iter_rules)
+		{
+			// Loop through each character in production
+			for(int i = 0; i < (*iter_rules).length(); i++)
+			{
+				// Not in GNF if first character isn't terminal or if non-first characters are terminals
+				if(i == 0)
+				{
+					if(((*iter_rules)[i] < 'a') || ('z' < (*iter_rules)[i]))
+					{
+						std::cout << "Invalid Grammar: not in Greibach normal form\n\n";
+						return 1;
+					}
+				}
+				else
+				{
+					if(((*iter_rules)[i] >= 'a') && ('z' >= (*iter_rules)[i]))
+					{
+						std::cout << "Invalid Grammar: not in Greibach normal form\n\n";
+						return 1;
+					}
+				}
+			}
+		}
+	}
+	
 	//# is lambda
 	std::cout << "d(q0, #, z) = (q1, Sz)";
 	std::getchar();
@@ -107,7 +212,7 @@ void Grammar::printTransitionFunctions()
 			}
 
 			// Output production that yields transition rule
-			std::cout << "\t" << iter_symbol->first << " -> ";
+			std::cout << "\t\t" << iter_symbol->first << " -> ";
 			for (int k = 0; k < (*iter_rules).size(); k++)
 				std::cout << (*iter_rules)[k];
 
@@ -115,6 +220,7 @@ void Grammar::printTransitionFunctions()
 		}
 	}
 	std::cout << "d(q1, #, z) = (q2, #)\n";
+	return 0;
 }
 
 bool Grammar::isNonTerminal(char ch)
@@ -241,11 +347,114 @@ void Grammar::elimLambda()
 			}
 		}
 	}
+	
+	// Erase empty productions
+	for (auto iter_symbol = productions.begin(); iter_symbol != productions.end(); iter_symbol++)
+	{
+		// Loop through all rules of current symbol
+		for (auto iter_rules = iter_symbol->second.begin(); iter_rules != iter_symbol->second.end();)
+		{
+			// Production is unit production if it contains only a single nonterminal.
+			if((*iter_rules).length() == 0)
+			{
+				iter_rules = productions[iter_symbol->first].erase(iter_rules);
+			}
+			else
+				++iter_rules;
+		}
+	}
 }
 
 void Grammar::elimUnit()
 {
-	//TODO: eliminate unit productions from the grammar
+	// Get intial count of unit productions
+	for(auto iter = non_terminals.begin(); iter != non_terminals.end(); iter++)
+		iter->second = 0;	// Count of unit productions for that symbol	
+	// Loop through all production symbols
+	for (auto iter_symbol = productions.begin(); iter_symbol != productions.end(); iter_symbol++)
+	{
+		// Loop through all rules of current symbol
+		for (auto iter_rules = iter_symbol->second.begin(); iter_rules != iter_symbol->second.end(); ++iter_rules)
+		{
+			// Production is unit production if it contains only a single nonterminal.
+			if((*iter_rules).length() == 1)
+			{
+				if(((*iter_rules)[0] >= 'A') && ((*iter_rules)[0] <= 'Z'))
+					non_terminals[iter_symbol->first]++;
+			}
+		}
+	}
+	int total_units = 0;
+	for(auto iter = non_terminals.begin(); iter != non_terminals.end(); iter++)
+		total_units += iter->second;
+	
+	// If unit productions exist, replace them with the productions for the symbol it's unit with
+	while(total_units != 0)
+	{
+		// Loop through all production symbols
+		for (auto iter_symbol = productions.begin(); iter_symbol != productions.end(); iter_symbol++)
+		{
+			// Process symbol only if it has unit productions
+			if(non_terminals[iter_symbol->first] != 0)
+			{
+				std::unordered_set<std::string> new_set;
+				std::string copy_from;
+				bool unit_hit = false;
+				bool self_loop = false;
+				// Loop through all rules of current symbol
+				for (auto iter_rules = iter_symbol->second.begin(); iter_rules != iter_symbol->second.end(); ++iter_rules)
+				{
+					if(((*iter_rules).length() == 1) && (((*iter_rules)[0] >= 'A') && ((*iter_rules)[0] <= 'Z')))
+					{
+						// Only the first unit production found for this symbol will be handled in this while loop iteration
+						// First found unit production will not be copied, but the rest will
+						if(!unit_hit)
+						{
+							// Identify the symbol who's productions will be copied to current symbol's list
+							copy_from = (*iter_rules);
+							if(copy_from.compare(iter_symbol->first) == 0)
+								self_loop = true;
+							unit_hit = true;
+						}
+						else
+							new_set.emplace((*iter_rules));
+					}
+					else
+						new_set.emplace((*iter_rules));
+				}
+				// If unit production isn't self loop, copy productions of symbol it's unit with to new_set
+				// Swap sets.
+				if(!self_loop)
+				{
+					for(auto copy_iter = productions[copy_from].begin(); copy_iter != productions[copy_from].end(); ++copy_iter)
+					{
+						// Don't copy production if (*copy_iter) == iter_symbol->first (self loop)
+						if((*copy_iter).compare(iter_symbol->first) != 0)
+							new_set.emplace((*copy_iter));
+					}
+				}
+				swap(iter_symbol->second, new_set);
+			}
+		}
+		
+		// Get new count of unit productions
+		for(auto iter = non_terminals.begin(); iter != non_terminals.end(); iter++)
+			iter->second = 0;
+		for (auto iter_symbol = productions.begin(); iter_symbol != productions.end(); iter_symbol++)
+		{
+			for (auto iter_rules = iter_symbol->second.begin(); iter_rules != iter_symbol->second.end(); ++iter_rules)
+			{
+				if((*iter_rules).length() == 1)
+				{
+					if(((*iter_rules)[0] >= 'A') && ((*iter_rules)[0] <= 'Z'))
+						non_terminals[iter_symbol->first]++;
+				}
+			}
+		}
+		total_units = 0;
+		for(auto iter = non_terminals.begin(); iter != non_terminals.end(); iter++)
+			total_units += iter->second;
+	}
 }
 
 void Grammar::elimUnreachable()
@@ -353,7 +562,6 @@ void Grammar::elimNonterminating()
 		init_term = 0;
 		end_term = 0;
 		// Count number of terminating symbols
-		// COUT FOR DEBUGGING
 		for(auto iter = non_terminals.begin(); iter != non_terminals.end(); iter++)
 			init_term += iter->second;
 		
@@ -455,16 +663,6 @@ void Grammar::cleanUp()
 	elimNonterminating();
 	elimLambda();
 	elimUnit();
-}
-
-// TODO: Unfinished?
-bool Grammar::isCNF()
-{
-	return false;
-}
-
-// TODO: Unfinished?
-bool Grammar::isGNF()
-{
-	return true;
+	// elimLeftRecursion // Unattempted
+	
 }

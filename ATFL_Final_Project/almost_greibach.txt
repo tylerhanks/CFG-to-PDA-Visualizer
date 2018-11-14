@@ -1,0 +1,7 @@
+S -> aAcfDc | bB
+A -> cFaff | aA | a | bDA
+B -> bB | b | aFdc
+C -> aA | cC | bbEbE
+D -> dD | dEbEE | aEb | #
+E -> a | #
+F -> bF

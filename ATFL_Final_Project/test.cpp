@@ -7,7 +7,6 @@ int main(int argc, char *argv[])
 	if (argc < 2)
 	{
 		std::cout << "Usage: 'program' <pathToInputFile>" << std::endl;
-		std::getchar();
 		return 0;
 	}
 	// Begin
@@ -17,6 +16,20 @@ int main(int argc, char *argv[])
 		std::cout << "Input:" << std::endl << "---------------------------------" << std::endl;
 		test_grammar.printGrammar();
 		std::cout << std::endl;
+		
+		std::getchar();
+		
+		std::cout << "Eliminate unreachable productions:" << std::endl << "---------------------------------" << std::endl;
+		test_grammar.elimUnreachable();
+		test_grammar.printGrammar();
+
+		std::getchar();
+		
+		std::cout << "Eliminate nonterminating productions:" << std::endl << "---------------------------------" << std::endl;
+		test_grammar.elimNonterminating();
+		test_grammar.printGrammar();
+		
+		std::getchar();
 		
 		std::cout << "Lambda Removal:" << std::endl << "---------------------------------" << std::endl;
 		test_grammar.elimLambda();
@@ -31,15 +44,9 @@ int main(int argc, char *argv[])
 		test_grammar.printGrammar();
 
 		std::getchar();
-
-		std::cout << "Eliminate nonterminating productions:" << std::endl << "---------------------------------" << std::endl;
-		test_grammar.elimNonterminating();
-		test_grammar.printGrammar();
-
-		std::getchar();
-
-		std::cout << "Eliminate unreachable productions:" << std::endl << "---------------------------------" << std::endl;
-		test_grammar.elimUnreachable();
+		
+		std::cout << "Greibach Normal Form:" << std::endl << "---------------------------------" << std::endl;
+		test_grammar.convertToGNF();
 		test_grammar.printGrammar();
 
 		std::getchar();

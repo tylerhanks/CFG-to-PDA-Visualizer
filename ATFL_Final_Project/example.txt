@@ -1,7 +1,7 @@
-S -> aA | bB
+S -> aA | bB | B | A
 A -> Faff | aA | a | bDA
-B -> bB | b | Fdc
+B -> bB | b | S | Fdc | B
 C -> aA | cC | EbE
-D -> dD | EbEE | Eb | #
-E -> a | #
+D -> A | dD | EbEE | Eb | #
+E -> a | # | D
 F -> bF
