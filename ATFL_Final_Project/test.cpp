@@ -10,66 +10,92 @@ int main(int argc, char *argv[])
 		return 0;
 	}
 	// Begin
-	try
+	if (argc == 2)
 	{
-		Grammar test_grammar(argv[1]);
-		std::cout << "Input:" << std::endl << "---------------------------------" << std::endl;
-		test_grammar.printGrammar();
+		try
+		{
+			Grammar test_grammar(argv[1]);
+			std::cout << "Input:" << std::endl << "---------------------------------" << std::endl;
+			test_grammar.printGrammar();
 
-		std::getchar();
+			std::getchar();
 
-		std::cout << "Eliminate unreachable symbols:" << std::endl << "---------------------------------" << std::endl;
-		test_grammar.elimUnreachable();
-		test_grammar.printGrammar();
+			std::cout << "Eliminate unreachable symbols:" << std::endl << "---------------------------------" << std::endl;
+			test_grammar.elimUnreachable();
+			test_grammar.printGrammar();
 
-		std::getchar();
+			std::getchar();
 
-		std::cout << "Eliminate nonterminating productions and symbols:" << std::endl << "---------------------------------" << std::endl;
-		test_grammar.elimNonterminating();
-		test_grammar.printGrammar();
+			std::cout << "Eliminate nonterminating productions and symbols:" << std::endl << "---------------------------------" << std::endl;
+			test_grammar.elimNonterminating();
+			test_grammar.printGrammar();
 
-		std::getchar();
+			std::getchar();
 
-		std::cout << "Eliminate lambda productions:" << std::endl << "---------------------------------" << std::endl;
-		test_grammar.elimLambda();
-		test_grammar.printGrammar();
+			std::cout << "Eliminate lambda productions:" << std::endl << "---------------------------------" << std::endl;
+			test_grammar.elimLambda();
+			test_grammar.printGrammar();
 
-		std::getchar();
+			std::getchar();
 
-		std::cout << "Eliminate unit productions:" << std::endl << "---------------------------------" << std::endl;
-		test_grammar.elimUnit();
-		test_grammar.printGrammar();
+			std::cout << "Eliminate unit productions:" << std::endl << "---------------------------------" << std::endl;
+			test_grammar.elimUnit();
+			test_grammar.printGrammar();
 
-		std::getchar();
+			std::getchar();
 
-		std::cout << "Eliminate redundant symbols:" << std::endl << "---------------------------------" << std::endl;
-		test_grammar.elimRedundant();
-		test_grammar.printGrammar();
+			std::cout << "Eliminate redundant symbols:" << std::endl << "---------------------------------" << std::endl;
+			test_grammar.elimRedundant();
+			test_grammar.printGrammar();
 
-		std::getchar();
+			std::getchar();
 
-		std::cout << "Eliminate left recursion:" << std::endl << "---------------------------------" << std::endl;
-		test_grammar.elimLeftRecursion();
-		test_grammar.printGrammar();
+			std::cout << "Eliminate left recursion:" << std::endl << "---------------------------------" << std::endl;
+			int r = test_grammar.elimLeftRecursion();
+			if (r == -1)
+			{
+				std::cout << "Failed to eliminate left recursion" << std::endl;
+			}
+			test_grammar.printGrammar();
+			
+			std::getchar();
 
-		std::getchar();
+			std::cout << "Greibach Normal Form:" << std::endl << "---------------------------------" << std::endl;
+			test_grammar.convertToGNF();
+			test_grammar.printGrammar();
 
-		std::cout << "Greibach Normal Form:" << std::endl << "---------------------------------" << std::endl;
-		test_grammar.convertToGNF();
-		test_grammar.printGrammar();
+			std::getchar();
+			
+			std::cout << "Print PDA:" << std::endl << "---------------------------------" << std::endl;
+			test_grammar.printTransitionFunctions();
 
-		std::getchar();
-
-		std::cout << "Print PDA:" << std::endl << "---------------------------------" << std::endl;
-		test_grammar.printTransitionFunctions();
-
-		std::getchar();
+			std::getchar();
+		}
+		catch (std::exception& error)
+		{
+			std::cout << "Error occurred: " << error.what();
+		}
+		return 0;
 	}
-	catch (std::exception& error)
+	else
 	{
-		std::cout << "Error occurred: " << error.what();
+		try
+		{
+			Grammar test_grammar(argv[1]);
+			test_grammar.elimUnreachable();
+			test_grammar.elimNonterminating();
+			test_grammar.elimLambda();
+			test_grammar.elimUnit();
+			test_grammar.elimRedundant();
+			test_grammar.elimLeftRecursion();
+			test_grammar.convertToGNF();
+			test_grammar.printTransitionFunctions(1);
+		}
+		catch (std::exception& error)
+		{
+			std::cout << "Error occurred: " << error.what();
+			return -1;
+		}
+		return 0;
 	}
-
-
-	return 0;
 }

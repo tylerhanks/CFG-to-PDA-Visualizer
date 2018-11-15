@@ -551,10 +551,80 @@ void Grammar::elimUnit()
 
 void Grammar::elimRedundant()
 {
+
 }
 
-void Grammar::elimLeftRecursion()
+int Grammar::elimLeftRecursion()
 {
+	//for each production in productions
+	for (auto production = productions.begin(); production != productions.end(); )
+	{
+		std::unordered_set<std::string> bad_rules;
+		std::unordered_set<std::string> good_rules;
+
+		//partition rules into left recursive and non left recursive sets
+		for (auto rule = production->second.begin(); rule != production->second.end(); rule++)
+		{
+			if (rule->at(0) == production->first[0]) //if a rule begins with the same non-terminal i.e. is left recursive
+			{
+				std::string alpha = rule->substr(1, std::string::npos);
+				bad_rules.insert(alpha);
+			}
+			else
+			{
+				good_rules.insert(*rule);
+			}
+		}
+		
+		if (bad_rules.size() == 0)
+		{
+			production++;
+			continue; //there was no left recursion
+		}
+		else
+		{
+			//find a viable replacement symbol
+			char t;
+			bool broken = false;
+			for (t = 'Z'; t >= 'A'; t--)
+			{
+				std::string tail;
+				tail += t;
+				if (!non_terminals.count(tail))
+				{
+					broken = true;
+					break;
+				}
+			}
+			if (!broken)
+				return -1; //failed to find available replacement symbol
+
+			std::string tail;
+			tail += t;
+			non_terminals.insert({ tail, 0 }); //add new non-terminal to non_terminals
+			std::unordered_set<std::string> alpha_rules;
+			std::unordered_set<std::string> beta_rules;
+		
+			for (auto str : bad_rules)
+			{
+				str.append(tail);
+				alpha_rules.insert(str);
+			}
+			for (auto str : good_rules)
+			{
+				str.append(tail);
+				beta_rules.insert(str);
+			}
+			alpha_rules.insert("#");
+			std::string newStr = production->first;
+
+			production = productions.erase(production);
+
+			productions.insert({ newStr, beta_rules });
+			productions.insert({ tail, alpha_rules });
+		}
+	}
+	return 1;
 }
 
 int Grammar::convertToGNF()
@@ -633,5 +703,75 @@ int Grammar::convertToGNF()
 			productions[new_symbol].emplace(new_prod);
 		}
 	}
+	return 0;
+}
+
+int Grammar::printTransitionFunctions(int)
+{
+	// Check first that grammar is in GNF
+	// Loop through all symbols
+	for (auto iter_symbol = productions.begin(); iter_symbol != productions.end(); iter_symbol++)
+	{
+		// Loop through all curent rules of symbol
+		for (auto iter_rules = iter_symbol->second.begin(); iter_rules != iter_symbol->second.end(); ++iter_rules)
+		{
+			// Loop through each character in production
+			for (int i = 0; i < (*iter_rules).length(); i++)
+			{
+				// Not in GNF if first character isn't terminal or if non-first characters are terminals
+				if (i == 0)
+				{
+					if (((*iter_rules)[i] < 'a') || ('z' < (*iter_rules)[i]))
+					{
+						std::cout << "Invalid Grammar: not in Greibach normal form\n\n";
+						return 1;
+					}
+				}
+				else
+				{
+					if (((*iter_rules)[i] >= 'a') && ('z' >= (*iter_rules)[i]))
+					{
+						std::cout << "Invalid Grammar: not in Greibach normal form\n\n";
+						return 1;
+					}
+				}
+			}
+		}
+	}
+
+	//# is lambda
+	std::cout << "d(q0, #, z) = (q1, Sz)" << std::endl;
+
+	// Loop through all production symbols
+	for (auto iter_symbol = productions.begin(); iter_symbol != productions.end(); iter_symbol++)
+	{
+		// Loop through all rule sets of current production symbol
+		for (auto iter_rules = iter_symbol->second.begin(); iter_rules != iter_symbol->second.end(); ++iter_rules)
+		{
+			// Loop through characters in production
+			for (int i = 0; i < (*iter_rules).size(); ++i)
+			{
+				if ((*iter_rules).size() == 1)
+					std::cout << "d(q1, " << (*iter_rules)[i] << ", " << iter_symbol->first << ") = (q1, #)";
+				else
+				{
+					if (i == 0)
+						std::cout << "d(q1, " << (*iter_rules)[i] << ", " << iter_symbol->first << ") = (q1, ";
+					else
+						std::cout << (*iter_rules)[i];
+
+					if (i == ((*iter_rules).size() - 1))
+						std::cout << ")";
+				}
+			}
+
+			// Output production that yields transition rule
+			std::cout << "\t\t" << iter_symbol->first << " -> ";
+			for (int k = 0; k < (*iter_rules).size(); k++)
+				std::cout << (*iter_rules)[k];
+			std::cout << std::endl;
+		}
+	}
+	std::cout << "d(q1, #, z) = (q2, #)\n";
 	return 0;
 }

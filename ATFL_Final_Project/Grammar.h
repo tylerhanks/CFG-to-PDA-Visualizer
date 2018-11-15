@@ -1,4 +1,5 @@
 #pragma once
+#pragma once
 #include <iostream>
 #include <string>
 #include <sstream>
@@ -56,7 +57,7 @@ public:
 	/// <summary>
 	/// Eliminates left recursion from the grammar.
 	/// </summary>
-	void elimLeftRecursion();
+	int elimLeftRecursion();
 
 	/// <summary>
 	/// Converts the current production rules to correct GNF formatting.
@@ -71,6 +72,7 @@ public:
 	///   <c>1</c> if the transitions could be printed; otherwise <c>0</c>
 	/// </returns>
 	int printTransitionFunctions();
+	int printTransitionFunctions(int);
 
 	/// <summary>
 	/// Prints the grammar.

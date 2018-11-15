@@ -2,6 +2,7 @@ import tkinter as tk
 
 import re
 import sys
+import subprocess as sp
 
 LAMBDA = '\u03BB'
 
@@ -65,6 +66,10 @@ def main():
         print("Usage: python visualizer.py [path to a file containing a GNF grammar]")
         return -1
     else:
+        #run CFGtoPDA to obtain a PDA file
+        #cp = sp.run(['./CFGtoPDA', 'almost_greibach.txt', 'True'], stdout = sp.PIPE)
+        #print(cp)
+
 
         window = PDAWindow(sys.argv[1])
         window.canvas.grid()
