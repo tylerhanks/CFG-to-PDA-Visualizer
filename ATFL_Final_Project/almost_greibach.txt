@@ -1,6 +1,6 @@
 S -> aAcfDc | bB
-A -> cFaff | aA | a | bDA
-B -> bB | b | aFdc
+A -> cFaff | aA | a | bFA
+B -> bB | bb | aFdc
 C -> aA | cC | bbEbE
 D -> dD | dEbEE | aEb | #
 E -> a | #

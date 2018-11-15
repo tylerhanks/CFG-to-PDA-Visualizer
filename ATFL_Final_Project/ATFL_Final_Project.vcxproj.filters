@@ -18,9 +18,6 @@
     <ClInclude Include="Grammar.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="PDA.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Grammar.cpp">
@@ -29,12 +26,15 @@
     <ClCompile Include="test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="PDA.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="example.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="almost_greibach.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="simple.txt">
       <Filter>Resource Files</Filter>
     </Text>
   </ItemGroup>

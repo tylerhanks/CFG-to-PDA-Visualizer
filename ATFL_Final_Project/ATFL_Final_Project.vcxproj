@@ -116,15 +116,15 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Grammar.h" />
-    <ClInclude Include="PDA.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Grammar.cpp" />
-    <ClCompile Include="PDA.cpp" />
     <ClCompile Include="test.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <Text Include="almost_greibach.txt" />
     <Text Include="example.txt" />
+    <Text Include="simple.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

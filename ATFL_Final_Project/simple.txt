@@ -1,0 +1,8 @@
+d(q0, #, z) = (q1, Sz)
+d(q1, b, B) = (q1, C)        B -> bC
+d(q1, b, B) = (q1, B)        B -> bB
+d(q1, b, B) = (q1, #)        B -> b
+d(q1, a, A) = (q1, #)        A -> a
+d(q1, a, S) = (q1, BC)        S -> aBC
+d(q1, b, S) = (q1, AB)        S -> bAB
+d(q1, #, z) = (q2, #)
