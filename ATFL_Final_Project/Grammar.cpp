@@ -580,6 +580,7 @@ void Grammar::elimRedundant()
 		}
 		
 		productions.erase(toReplace);
+		non_terminals.erase(toReplace);
 		//iterate through all productions and replace toReplace with replaceWith
 		for (auto production = productions.begin(); production != productions.end(); production++)
 		{
@@ -760,7 +761,7 @@ int Grammar::convertToGNF()
 	return 0;
 }
 
-int Grammar::printTransitionFunctions(int)
+int Grammar::printTransitionFunctions(std::string outfile)
 {
 	// Check first that grammar is in GNF
 	// Loop through all symbols
@@ -792,9 +793,11 @@ int Grammar::printTransitionFunctions(int)
 			}
 		}
 	}
-
+	std::ofstream writefile;
+	writefile.open(outfile);
 	//# is lambda
 	std::cout << "d(q0, #, z) = (q1, Sz)" << std::endl;
+	writefile << "d(q0, #, z) = (q1, Sz)\n";
 
 	// Loop through all production symbols
 	for (auto iter_symbol = productions.begin(); iter_symbol != productions.end(); iter_symbol++)
@@ -806,26 +809,44 @@ int Grammar::printTransitionFunctions(int)
 			for (int i = 0; i < (*iter_rules).size(); ++i)
 			{
 				if ((*iter_rules).size() == 1)
+				{
 					std::cout << "d(q1, " << (*iter_rules)[i] << ", " << iter_symbol->first << ") = (q1, #)";
+					writefile << "d(q1, " << (*iter_rules)[i] << ", " << iter_symbol->first << ") = (q1, #)";
+				}
 				else
 				{
 					if (i == 0)
+					{
 						std::cout << "d(q1, " << (*iter_rules)[i] << ", " << iter_symbol->first << ") = (q1, ";
+						writefile << "d(q1, " << (*iter_rules)[i] << ", " << iter_symbol->first << ") = (q1, ";
+					}
 					else
+					{
 						std::cout << (*iter_rules)[i];
-
+						writefile << (*iter_rules)[i];
+					}
 					if (i == ((*iter_rules).size() - 1))
+					{
 						std::cout << ")";
+						writefile << ")";
+					}
 				}
 			}
 
 			// Output production that yields transition rule
 			std::cout << "\t\t" << iter_symbol->first << " -> ";
+			writefile << "\t\t" << iter_symbol->first << " -> ";
 			for (int k = 0; k < (*iter_rules).size(); k++)
+			{
 				std::cout << (*iter_rules)[k];
+				writefile << (*iter_rules)[k];
+			}
 			std::cout << std::endl;
+			writefile << "\n";
 		}
 	}
 	std::cout << "d(q1, #, z) = (q2, #)\n";
+	writefile << "d(q1, #, z) = (q2, #)\n";
+	writefile.close();
 	return 0;
 }

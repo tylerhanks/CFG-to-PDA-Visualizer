@@ -6,7 +6,7 @@ int main(int argc, char *argv[])
 	// Check for all args present
 	if (argc < 2)
 	{
-		std::cout << "Usage: 'program' <pathToInputFile>" << std::endl;
+		std::cout << "Usage: 'program' <pathToInputFile> [optional]<nameOfOutputFile>(defaults to PDA.txt)" << std::endl;
 		return 0;
 	}
 	// Begin
@@ -70,6 +70,9 @@ int main(int argc, char *argv[])
 			test_grammar.printTransitionFunctions();
 
 			std::getchar();
+
+			std::cout << "Print PDA to file:" << std::endl << "---------------------------------" << std::endl;
+			test_grammar.printTransitionFunctions("PDA.txt");
 		}
 		catch (std::exception& error)
 		{
@@ -89,7 +92,7 @@ int main(int argc, char *argv[])
 			test_grammar.elimRedundant();
 			test_grammar.elimLeftRecursion();
 			test_grammar.convertToGNF();
-			test_grammar.printTransitionFunctions(1);
+			test_grammar.printTransitionFunctions(argv[2]);
 		}
 		catch (std::exception& error)
 		{

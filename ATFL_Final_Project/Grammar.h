@@ -72,7 +72,7 @@ public:
 	///   <c>1</c> if the transitions could be printed; otherwise <c>0</c>
 	/// </returns>
 	int printTransitionFunctions();
-	int printTransitionFunctions(int);
+	int printTransitionFunctions(std::string outfile);
 
 	/// <summary>
 	/// Prints the grammar.
