@@ -551,7 +551,61 @@ void Grammar::elimUnit()
 
 void Grammar::elimRedundant()
 {
-
+	//get all redundant pairs into a vector
+	std::vector<std::pair<std::string, std::string>> redundancies;
+	for(auto iter1 = productions.begin(); iter1 != productions.end(); iter1++)
+		for (auto iter2 = iter1; iter2 != productions.end(); iter2++)
+		{
+			if (iter2 == iter1)
+				continue;
+			if (iter1->second == iter2->second)
+			{
+				redundancies.push_back({ iter1->first,iter2->first });
+			}
+		}
+	//remove every redundant pair
+	for (auto redundant_pair : redundancies)
+	{
+		std::string toReplace;
+		std::string replaceWith;
+		if (redundant_pair.first == "S") //S should never be replaced
+		{
+			replaceWith = redundant_pair.first;
+			toReplace = redundant_pair.second;
+		}
+		else
+		{
+			replaceWith = redundant_pair.second;
+			toReplace = redundant_pair.first;
+		}
+		
+		productions.erase(toReplace);
+		//iterate through all productions and replace toReplace with replaceWith
+		for (auto production = productions.begin(); production != productions.end(); production++)
+		{
+			//iterate through all rules of a production
+			for (auto rule = production->second.begin(); rule != production->second.end(); )
+			{
+				auto index = rule->find(toReplace);
+				bool replaced = false;
+				std::string new_rule = *rule;
+				//replace all occurences of toReplace with replaceWith in rule
+				while (index != std::string::npos)
+				{
+					replaced = true;
+					new_rule = new_rule.replace(index, toReplace.length(), replaceWith);
+					index = new_rule.find(toReplace);
+				}
+				if (replaced)
+				{
+					rule = production->second.erase(rule);
+					production->second.insert(new_rule);
+				}
+				else
+					rule++;
+			}
+		}
+	}
 }
 
 int Grammar::elimLeftRecursion()

@@ -1,0 +1,5 @@
+S -> aABC | babA
+A -> aABC | babA
+B -> bBb | bB
+C -> c
+D -> bBb | bB
